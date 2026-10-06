@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { memo } from 'react';
 import carImage from '../assets/car.png';
 
 const HEADLINE_TEXT = "WELCOME ITZFIZZ";
 
-export default function CarTrack({
+const CarTrack = memo(function CarTrack({
   carRef,
   trailRef,
   lettersRef,
@@ -27,20 +27,20 @@ export default function CarTrack({
         <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 h-[3px] border-b-2 border-dashed border-white/20 z-0 pointer-events-none" />
 
         {/* Start Gate */}
-        <div className="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-[#45db7d]/40 to-transparent z-10 flex flex-col justify-between py-1">
+        <div className="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-[#45db7d]/40 to-transparent z-10 flex flex-col justify-between py-1 pointer-events-none">
           <div className="w-1.5 h-full border-r-2 border-dashed border-[#45db7d]/60" />
         </div>
 
         {/* Finish Gate */}
-        <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-[#def54f]/40 to-transparent z-10 flex items-center justify-end pr-1">
+        <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-l from-[#def54f]/40 to-transparent z-10 flex items-center justify-end pr-1 pointer-events-none">
           <div className="w-1.5 h-full border-l-2 border-dashed border-[#def54f]/60" />
         </div>
 
-        {/* The Neon Cyber Trail */}
+        {/* The Neon Cyber Trail (positioned strictly behind the car) */}
         <div
           ref={trailRef}
           id="trail"
-          className="absolute top-0 left-0 bottom-0 z-1 pointer-events-none transition-none"
+          className="absolute top-0 left-0 bottom-0 z-1 pointer-events-none"
           style={{
             width: '0px',
             background: 'linear-gradient(90deg, rgba(69,219,125,0.85) 0%, rgba(69,219,125,0.95) 85%, rgba(222,245,79,1) 100%)',
@@ -69,9 +69,10 @@ export default function CarTrack({
                 <span
                   key={index}
                   ref={(el) => (lettersRef.current[index] = el)}
-                  className="value-letter inline-block transition-all duration-200 text-zinc-600 opacity-20 transform will-change-[transform,opacity,color]"
+                  className="value-letter inline-block text-zinc-600 opacity-20 will-change-[transform,opacity,color]"
                   style={{
                     textShadow: 'none',
+                    transform: 'none',
                   }}
                 >
                   {char}
@@ -82,18 +83,22 @@ export default function CarTrack({
         </div>
 
         {/* The McLaren 720S Supercar */}
+        {/* Vertically centered without translateY to avoid GSAP transform collisions */}
         <div
           ref={carRef}
           id="car"
-          className="absolute top-1/2 -translate-y-1/2 left-0 z-20 cursor-grab active:cursor-grabbing will-change-transform"
+          className="absolute top-0 bottom-0 my-auto left-0 z-20 flex items-center pointer-events-none will-change-transform"
           style={{
             width: '160px',
-            height: 'auto',
+            height: 'fit-content',
           }}
         >
           <div className="relative w-full">
             {/* Dual Headlight Beams */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-[-80px] w-24 h-16 pointer-events-none z-0">
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-24 h-16 pointer-events-none z-0"
+              style={{ right: '-80px' }}
+            >
               <div
                 className="w-full h-full"
                 style={{
@@ -104,7 +109,10 @@ export default function CarTrack({
             </div>
 
             {/* Rear Exhaust Glow */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-[-15px] w-6 h-10 pointer-events-none z-0">
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-6 h-10 pointer-events-none z-0"
+              style={{ left: '-15px' }}
+            >
               <div
                 className="w-full h-full rounded-full blur-sm"
                 style={{
@@ -120,7 +128,6 @@ export default function CarTrack({
               className="w-full h-auto object-contain filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.85)] relative z-10"
               draggable="false"
               onError={(e) => {
-                // Fallback if asset is missing
                 if (!e.target.src.includes('car.png')) {
                   e.target.src = 'car.png';
                 }
@@ -144,4 +151,6 @@ export default function CarTrack({
       </div>
     </div>
   );
-}
+});
+
+export default CarTrack;

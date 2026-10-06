@@ -59,3 +59,4 @@ export default function TelemetryHUD({ velocity = 0, scrollProgress = 0 }) {
     </div>
   );
 }
+

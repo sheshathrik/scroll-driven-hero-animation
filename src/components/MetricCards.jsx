@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { TrendingUp, PhoneCall, ArrowUpRight, Zap, ShieldCheck } from 'lucide-react';
 
 export const METRICS = [
@@ -49,7 +49,7 @@ export const METRICS = [
   },
 ];
 
-export default function MetricCards({ scrollProgress, isMobile }) {
+const MetricCards = memo(function MetricCards({ scrollProgress, isMobile }) {
   return (
     <div className="w-full pointer-events-none select-none">
       {/* Responsive Layout: On desktop, cards float in quadrants around the road; on mobile, a neat 2x2 grid */}
@@ -128,4 +128,7 @@ export default function MetricCards({ scrollProgress, isMobile }) {
       </div>
     </div>
   );
-}
+});
+
+export default MetricCards;
+

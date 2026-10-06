@@ -5,7 +5,7 @@ import CarTrack from './CarTrack';
 import MetricCards from './MetricCards';
 import TelemetryHUD from './TelemetryHUD';
 import { soundEngine } from './AudioEngine';
-import { ChevronDown, MousePointerClick } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,18 +22,34 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
   const [velocity, setVelocity] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Resize handler & dimensions recalculation
-  const calculateDimensions = useCallback(() => {
-    if (!trackRef.current || !carRef.current) return { roadWidth: 0, carWidth: 0, endX: 0 };
+  // Cached letter offsets relative to text container (computed on mount and resize)
+  const letterOffsetsRef = useRef([]);
+  const dimensionsRef = useRef({ roadWidth: 0, carWidth: 160, endX: 1000 });
+
+  // Measure and cache dimensions and letter positions
+  const updateMetrics = useCallback(() => {
+    if (!trackRef.current || !carRef.current) return;
+
     const roadWidth = trackRef.current.clientWidth || window.innerWidth;
     const isSmall = window.innerWidth < 640;
     const isMedium = window.innerWidth >= 640 && window.innerWidth < 1024;
     const carWidth = isSmall ? 95 : isMedium ? 130 : 160;
 
     carRef.current.style.width = `${carWidth}px`;
-    const endX = Math.max(roadWidth - carWidth - (isSmall ? 10 : 25), 50);
+    const endX = Math.max(roadWidth - carWidth - (isSmall ? 8 : 20), 40);
 
-    return { roadWidth, carWidth, endX };
+    dimensionsRef.current = { roadWidth, carWidth, endX };
+
+    // Cache relative letter X positions once to prevent getBoundingClientRect() layout thrashing on scroll
+    if (textContainerRef.current) {
+      const containerRect = textContainerRef.current.getBoundingClientRect();
+      const letters = lettersRef.current.filter(Boolean);
+
+      letterOffsetsRef.current = letters.map((letter) => {
+        const letterRect = letter.getBoundingClientRect();
+        return letterRect.left - containerRect.left + (letterRect.width * 0.2);
+      });
+    }
   }, []);
 
   // Handle auto-scroll demo run
@@ -42,16 +58,14 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
     const sectionTop = sectionRef.current.offsetTop;
     const sectionHeight = sectionRef.current.offsetHeight - window.innerHeight;
 
-    // Smoothly scroll down through the section
     const startScroll = window.scrollY;
     const targetScroll = sectionTop + sectionHeight;
-    const duration = 4000;
+    const duration = 3800;
     const startTime = performance.now();
 
     const animateScroll = (time) => {
       const elapsed = time - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease in-out cubic
       const ease = progress < 0.5
         ? 4 * progress * progress * progress
         : 1 - Math.pow(-2 * progress + 2, 3) / 2;
@@ -83,118 +97,118 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
       const car = carRef.current;
       const trail = trailRef.current;
       const section = sectionRef.current;
-      const textContainer = textContainerRef.current;
       const letters = lettersRef.current.filter(Boolean);
 
-      if (!car || !trail || !section || !textContainer) return;
+      if (!car || !trail || !section) return;
 
-      const { carWidth, endX } = calculateDimensions();
+      // Ensure dimensions and letter hitboxes are measured
+      updateMetrics();
 
-      // 1. Initial Load Animations
+      // 1. Initial Load Animations (staggered reveal)
       const initialTimeline = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      // Staggered letter reveal on load
       initialTimeline.fromTo(
         letters,
-        { opacity: 0, y: 25 },
+        { opacity: 0, y: 20 },
         {
           opacity: 0.2,
           y: 0,
-          stagger: 0.03,
-          duration: 0.8,
+          stagger: 0.025,
+          duration: 0.7,
         }
       );
 
-      // Entrance animation for metric cards with subtle stagger
       initialTimeline.fromTo(
         '.metric-card',
-        { opacity: 0, y: 35, scale: 0.94 },
+        { opacity: 0, y: 30, scale: 0.95 },
         {
           opacity: 0.85,
           y: 0,
           scale: 1,
-          stagger: 0.1,
-          duration: 0.7,
+          stagger: 0.08,
+          duration: 0.6,
         },
+        '-=0.3'
+      );
+
+      // ONLY fade-in car opacity on initial load. Do NOT animate x to prevent conflicts with ScrollTrigger!
+      initialTimeline.fromTo(
+        car,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.5 },
         '-=0.4'
       );
 
-      // Car starting entrance
-      initialTimeline.fromTo(
-        car,
-        { opacity: 0, x: -30 },
-        { opacity: 1, x: 0, duration: 0.6 },
-        '-=0.6'
-      );
+      // Set initial car position explicitly to 0
+      gsap.set(car, { x: 0 });
+      if (trail) trail.style.width = '0px';
 
       // 2. Scroll-Driven Core Animation
-      const updateLetterIllumination = (carXPos) => {
-        if (!textContainer) return;
-        const containerRect = textContainer.getBoundingClientRect();
+      let lastProgressUpdate = 0;
 
-        letters.forEach((letter) => {
-          if (!letter) return;
-          const letterRect = letter.getBoundingClientRect();
-          // Relative position of letter within track
-          const letterRelativeLeft = letterRect.left - containerRect.left;
-
-          // Light up letter if car front/mid passes it
-          if (carXPos >= letterRelativeLeft + (letterRect.width * 0.2)) {
-            letter.style.opacity = '1';
-            letter.style.color = '#ffffff';
-            letter.style.textShadow = '0 0 16px rgba(69,219,125,0.85), 0 0 30px rgba(222,245,79,0.5)';
-            letter.style.transform = 'translateY(-2px) scale(1.04)';
-          } else {
-            letter.style.opacity = '0.2';
-            letter.style.color = '#71717a';
-            letter.style.textShadow = 'none';
-            letter.style.transform = 'translateY(0) scale(1)';
-          }
-        });
-      };
-
-      // GSAP ScrollTrigger for pinned highway and car progress
       const scrollAnim = gsap.to(car, {
         scrollTrigger: {
           trigger: section,
           start: 'top top',
           end: 'bottom bottom',
           pin: trackWrapperRef.current,
-          scrub: 0.85, // Silky smooth inertia interpolation
+          scrub: 0.6, // Fast, responsive inertia that tracks forward & backward accurately
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             const currentProgress = self.progress;
-            setScrollProgress(currentProgress);
-            onProgressUpdate?.(currentProgress);
 
-            // Velocity calculation for HUD and Audio Engine
-            const currentVelocity = self.getVelocity();
-            setVelocity(currentVelocity);
-            soundEngine.updateVelocity(currentVelocity);
-
-            // Car position
+            // Direct high-performance DOM updates (zero layout thrashing)
             const currentCarX = gsap.getProperty(car, 'x');
+            const carWidth = dimensionsRef.current.carWidth;
             const carCenter = currentCarX + carWidth * 0.45;
 
-            // Update neon trail length
+            // Update trail width strictly behind the car
             if (trail) {
-              trail.style.width = `${Math.max(currentCarX + 15, 0)}px`;
+              if (currentProgress <= 0.001) {
+                trail.style.width = '0px';
+              } else {
+                trail.style.width = `${Math.max(currentCarX + carWidth * 0.25, 0)}px`;
+              }
             }
 
-            // Update letter illumination
-            updateLetterIllumination(carCenter);
+            // Update letter illumination using cached offsets (zero getBoundingClientRect calls!)
+            const offsets = letterOffsetsRef.current;
+            for (let i = 0; i < letters.length; i++) {
+              const letter = letters[i];
+              if (!letter) continue;
+              const letterX = offsets[i] || 0;
+
+              if (carCenter >= letterX) {
+                letter.style.opacity = '1';
+                letter.style.color = '#ffffff';
+                letter.style.textShadow = '0 0 16px rgba(69,219,125,0.85), 0 0 30px rgba(222,245,79,0.5)';
+              } else {
+                letter.style.opacity = '0.2';
+                letter.style.color = '#71717a';
+                letter.style.textShadow = 'none';
+              }
+            }
+
+            // Audio engine velocity update
+            const currentVelocity = self.getVelocity();
+            soundEngine.updateVelocity(currentVelocity);
+
+            // Throttle React state updates so React doesn't re-render 60 times/sec while scrolling
+            if (Math.abs(currentProgress - lastProgressUpdate) > 0.015 || currentProgress === 0 || currentProgress === 1) {
+              lastProgressUpdate = currentProgress;
+              setScrollProgress(currentProgress);
+              setVelocity(currentVelocity);
+              onProgressUpdate?.(currentProgress);
+            }
           },
         },
-        x: () => {
-          const dims = calculateDimensions();
-          return dims.endX;
-        },
+        x: () => dimensionsRef.current.endX,
         ease: 'none',
       });
 
-      // Window resize refresh
+      // Window resize refresh listener
       const handleResize = () => {
-        calculateDimensions();
+        updateMetrics();
         ScrollTrigger.refresh();
       };
 
@@ -210,14 +224,14 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
       ctx.revert();
       window.removeEventListener('resize', handleCheckMobile);
     };
-  }, [calculateDimensions, onProgressUpdate]);
+  }, [updateMetrics, onProgressUpdate]);
 
   return (
     <section
       ref={sectionRef}
       id="hero-section"
       className="relative w-full bg-[#090a0f] text-white overflow-hidden"
-      style={{ height: '260vh' }} // High scroll travel for smooth scrubbing
+      style={{ height: '260vh' }}
     >
       {/* Pinned Viewport Container */}
       <div

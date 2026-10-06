@@ -133,3 +133,4 @@ scroll-driven-hero-animation/
 - **Developer**: Sheshathri K ([@sheshathrik](https://github.com/sheshathrik))
 - **Email**: sheshathrik01@gmail.com
 - **Assignment**: Scroll-Driven Hero Section Animation
+
