@@ -132,3 +132,4 @@ const MetricCards = memo(function MetricCards({ scrollProgress, isMobile }) {
 });
 
 export default MetricCards;
+
