@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { TrendingUp, PhoneCall, ArrowUpRight, Zap, ShieldCheck } from 'lucide-react';
+import { TrendingUp, PhoneCall, ArrowUpRight, ShieldCheck } from 'lucide-react';
 
 export const METRICS = [
   {
@@ -52,8 +52,8 @@ export const METRICS = [
 const MetricCards = memo(function MetricCards({ scrollProgress, isMobile }) {
   return (
     <div className="w-full pointer-events-none select-none">
-      {/* Responsive Layout: On desktop, cards float in quadrants around the road; on mobile, a neat 2x2 grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-7xl mx-auto px-4 sm:px-6">
+      {/* Responsive Grid: compact on mobile, spacious on desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3.5 max-w-7xl mx-auto px-2 sm:px-6">
         {METRICS.map((metric, idx) => {
           const [start, end] = metric.activeThreshold;
           const isActive = scrollProgress >= start && scrollProgress <= end;
@@ -64,26 +64,27 @@ const MetricCards = memo(function MetricCards({ scrollProgress, isMobile }) {
             <div
               key={metric.id}
               id={metric.id}
-              className={`metric-card pointer-events-auto rounded-2xl p-4 sm:p-5 transition-all duration-300 transform shadow-xl ${
+              className={`metric-card pointer-events-auto rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 lg:p-4 transition-all duration-300 transform shadow-md ${
                 metric.border ? metric.border : ''
               } ${
                 isActive
-                  ? 'scale-105 ring-2 ring-white/40 shadow-2xl z-20 opacity-100'
+                  ? 'scale-[1.02] sm:scale-105 ring-2 ring-white/40 shadow-xl z-20 opacity-100'
                   : isPassed
                   ? 'opacity-85 scale-100'
-                  : 'opacity-70 scale-98'
+                  : 'opacity-70 scale-[0.99]'
               }`}
               style={{
                 backgroundColor: metric.bg,
                 color: metric.textColor,
                 boxShadow: isActive
-                  ? `0 20px 40px -15px ${metric.bg}66, 0 0 25px ${metric.bg}44`
-                  : '0 10px 25px -10px rgba(0,0,0,0.5)',
+                  ? `0 12px 28px -10px ${metric.bg}66, 0 0 18px ${metric.bg}44`
+                  : '0 4px 12px -4px rgba(0,0,0,0.4)',
               }}
             >
-              <div className="flex items-center justify-between gap-2 mb-2">
+              {/* Card Header: Badge & Icon */}
+              <div className="flex items-center justify-between gap-1 mb-1 sm:mb-1.5">
                 <span
-                  className="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded-full"
+                  className="text-[9px] sm:text-[10px] font-mono font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded-full"
                   style={{
                     backgroundColor: metric.textColor === '#ffffff' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
                     color: metric.textColor,
@@ -91,17 +92,17 @@ const MetricCards = memo(function MetricCards({ scrollProgress, isMobile }) {
                 >
                   {metric.badge}
                 </span>
-                <Icon className="w-4 h-4 opacity-75" />
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-75" />
               </div>
 
               {/* Percentage Stat */}
-              <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-none mb-1 font-sans">
+              <div className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-none mb-0.5 sm:mb-1 font-sans">
                 {metric.value}
               </div>
 
               {/* Description */}
               <div
-                className="text-xs sm:text-sm font-semibold leading-snug line-clamp-2"
+                className="text-[10px] sm:text-xs font-semibold leading-tight line-clamp-2"
                 style={{
                   color: metric.textColor === '#ffffff' ? '#e2e8f0' : '#18181b',
                 }}
@@ -109,17 +110,17 @@ const MetricCards = memo(function MetricCards({ scrollProgress, isMobile }) {
                 {metric.label}
               </div>
 
-              {/* Micro Subtext */}
+              {/* Micro Subtext - hidden on small mobile to prevent vertical overflow */}
               <div
-                className="text-[11px] font-medium mt-2 pt-2 border-t flex items-center justify-between"
+                className="hidden sm:flex text-[10px] font-medium mt-1.5 pt-1.5 border-t items-center justify-between"
                 style={{
                   borderColor: metric.textColor === '#ffffff' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
                   opacity: 0.8,
                 }}
               >
-                <span>{metric.detail}</span>
-                <span className="text-[10px] font-mono">
-                  {isActive ? '● ACTIVE' : '○ STAGE ' + (idx + 1)}
+                <span className="truncate pr-1">{metric.detail}</span>
+                <span className="text-[9px] font-mono shrink-0">
+                  {isActive ? '● ACTIVE' : '○ S' + (idx + 1)}
                 </span>
               </div>
             </div>
@@ -131,4 +132,3 @@ const MetricCards = memo(function MetricCards({ scrollProgress, isMobile }) {
 });
 
 export default MetricCards;
-

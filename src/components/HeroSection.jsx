@@ -24,7 +24,7 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
 
   // Cached letter offsets relative to text container (computed on mount and resize)
   const letterOffsetsRef = useRef([]);
-  const dimensionsRef = useRef({ roadWidth: 0, carWidth: 160, endX: 1000 });
+  const dimensionsRef = useRef({ roadWidth: 0, carWidth: 140, endX: 1000 });
 
   // Measure and cache dimensions and letter positions
   const updateMetrics = useCallback(() => {
@@ -33,10 +33,14 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
     const roadWidth = trackRef.current.clientWidth || window.innerWidth;
     const isSmall = window.innerWidth < 640;
     const isMedium = window.innerWidth >= 640 && window.innerWidth < 1024;
-    const carWidth = isSmall ? 95 : isMedium ? 130 : 160;
+    
+    // Proportional car scaling to guarantee it fits the road on any screen width
+    const carWidth = isSmall 
+      ? Math.min(Math.max(window.innerWidth * 0.22, 75), 105) 
+      : isMedium ? 125 : 155;
 
     carRef.current.style.width = `${carWidth}px`;
-    const endX = Math.max(roadWidth - carWidth - (isSmall ? 8 : 20), 40);
+    const endX = Math.max(roadWidth - carWidth - (isSmall ? 8 : 16), 30);
 
     dimensionsRef.current = { roadWidth, carWidth, endX };
 
@@ -109,7 +113,7 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
 
       initialTimeline.fromTo(
         letters,
-        { opacity: 0, y: 20 },
+        { opacity: 0, y: 15 },
         {
           opacity: 0.2,
           y: 0,
@@ -120,7 +124,7 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
 
       initialTimeline.fromTo(
         '.metric-card',
-        { opacity: 0, y: 30, scale: 0.95 },
+        { opacity: 0, y: 25, scale: 0.95 },
         {
           opacity: 0.85,
           y: 0,
@@ -152,7 +156,7 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
           start: 'top top',
           end: 'bottom bottom',
           pin: trackWrapperRef.current,
-          scrub: 0.6, // Fast, responsive inertia that tracks forward & backward accurately
+          scrub: 0.55, // Fast, responsive inertia that tracks forward & backward accurately
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             const currentProgress = self.progress;
@@ -167,7 +171,7 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
               if (currentProgress <= 0.001) {
                 trail.style.width = '0px';
               } else {
-                trail.style.width = `${Math.max(currentCarX + carWidth * 0.25, 0)}px`;
+                trail.style.width = `${Math.max(currentCarX + carWidth * 0.3, 0)}px`;
               }
             }
 
@@ -231,20 +235,20 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
       ref={sectionRef}
       id="hero-section"
       className="relative w-full bg-[#090a0f] text-white overflow-hidden"
-      style={{ height: '260vh' }}
+      style={{ height: '250vh' }}
     >
-      {/* Pinned Viewport Container */}
+      {/* Pinned Viewport Container - 100dvh avoids clipping on mobile and small windows */}
       <div
         ref={trackWrapperRef}
-        className="w-full h-screen sticky top-0 flex flex-col justify-between pt-16 sm:pt-20 pb-6 px-3 sm:px-8 max-w-[1600px] mx-auto overflow-hidden"
+        className="w-full h-[100dvh] max-h-[100dvh] sticky top-0 flex flex-col justify-between pt-14 sm:pt-16 pb-2 sm:pb-3 px-2 sm:px-6 max-w-[1600px] mx-auto overflow-hidden"
       >
         {/* Top Header / Context Info */}
-        <div className="w-full flex flex-col items-center text-center mt-2 sm:mt-4 z-10 pointer-events-none">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] sm:text-xs font-mono text-[#def54f] mb-2 shadow-inner">
-            <span className="w-2 h-2 rounded-full bg-[#45db7d] animate-ping" />
+        <div className="w-full flex flex-col items-center text-center mt-1 sm:mt-2 z-10 pointer-events-none">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] sm:text-xs font-mono text-[#def54f] mb-1 shadow-inner">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#45db7d] animate-ping" />
             <span>INTERACTIVE SCROLL-DRIVEN HIGHWAY</span>
           </div>
-          <h1 className="text-xs sm:text-sm font-mono tracking-widest text-zinc-400 uppercase">
+          <h1 className="text-[10px] sm:text-xs font-mono tracking-widest text-zinc-400 uppercase">
             McLaren 720S • Precision Kinetic Showcase
           </h1>
         </div>
@@ -261,15 +265,15 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
         </div>
 
         {/* Bottom Section: Impact Metric Cards & Telemetry HUD */}
-        <div className="w-full flex flex-col items-center gap-4 z-10">
+        <div className="w-full flex flex-col items-center gap-1.5 sm:gap-2.5 z-10">
           {/* 4 Impact Statistics Cards */}
           <MetricCards scrollProgress={scrollProgress} isMobile={isMobile} />
 
           {/* Bottom Bar: Telemetry HUD + Scroll Indicator */}
-          <div className="w-full flex items-center justify-between px-2 sm:px-6 pt-2">
+          <div className="w-full flex items-center justify-between px-2 sm:px-4 pt-1">
             {/* Scroll Direction Prompt */}
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 animate-bounce">
-              <ChevronDown className="w-4 h-4 text-[#def54f]" />
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-mono text-zinc-400">
+              <ChevronDown className="w-3.5 h-3.5 text-[#def54f] animate-bounce" />
               <span className="hidden sm:inline">
                 {scrollProgress < 0.95 ? 'SCROLL DOWN TO ACCELERATE' : 'DESTINATION REACHED • SCROLL FOR INSIGHTS'}
               </span>
@@ -284,7 +288,7 @@ export default function HeroSection({ onProgressUpdate, demoTriggerCount, resetC
         </div>
 
         {/* Ambient Highway Background Lighting */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[#45db7d]/5 rounded-full blur-[120px] pointer-events-none z-0" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-[#45db7d]/5 rounded-full blur-[100px] pointer-events-none z-0" />
       </div>
     </section>
   );
