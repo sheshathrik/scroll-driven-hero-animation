@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-primary: #def54f;
+    --color-neon-green: #45db7d;
+    --color-neon-blue: #6ac9ff;
+    --color-neon-orange: #fa7328;
+    --color-asphalt: #141416;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: #090a0f;
+    color: #ffffff;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    overflow-x: hidden;
+  }
+
+  body {
+    overflow-x: hidden;
+    background-color: #090a0f;
+    color: #ffffff;
+    min-height: 100vh;
+  }
+
+  /* Custom sleek scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #090a0f;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
+  }
+}
+
+/* Noise texture & glow utilities */
+.bg-radial-glow {
+  background: radial-gradient(circle at 50% 50%, rgba(69, 219, 125, 0.08) 0%, rgba(9, 10, 15, 0) 70%);
+}
+
+.asphalt-texture {
+  background-color: #121318;
+  background-image: radial-gradient(#1f212a 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.card-blur {
+  background: rgba(18, 20, 29, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Subtle glow animations */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
